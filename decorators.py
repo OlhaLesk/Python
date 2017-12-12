@@ -1,9 +1,12 @@
 import functools
 import time
 import sys
+import warnings
 
 
+# DECORATORS
 def trace(func=None, *, handle=sys.stdout):
+    """Decorator with optional argument."""
     if func is None:
         print("No function")
         return lambda func: trace(func, handle=handle)
@@ -15,6 +18,7 @@ def trace(func=None, *, handle=sys.stdout):
     return inner
 
 def counted(func):
+    """Count function calls."""
     @functools.wraps(func)
     def inner(*args, **kwargs):
         inner.calls_num += 1
@@ -23,12 +27,8 @@ def counted(func):
     inner.calls_num = 0
     return inner
 
-@counted
-@trace
-def identity(arg):
-    return arg
-
 def timethis(func=None, *, iter_numb=100):
+    """Count time of work."""
     if func is None:
         print("No function")
         return lambda func: timethis(func, iter_numb=iter_numb)
@@ -46,6 +46,7 @@ def timethis(func=None, *, iter_numb=100):
     return inner
 
 def once(func):
+    """Allow func to be called once."""
     @functools.wraps(func)
     def inner(*args, **kwargs):
         if not hasattr(inner, "called"):
@@ -54,26 +55,56 @@ def once(func):
         inner.called = False
     return inner
 
+def memoized(func):
+    """Memorize the results of function calls."""
+    cache = {}
+
+    @functools.wraps(func)
+    def inner(*args, **kwargs):
+        key = args + tuple(sorted(kwargs.items()))
+        if key not in cache:
+            cache[key] = func(*args, **kwargs)
+        return cache[key]
+    return inner
+
+#Functions
+@counted
+@trace
+def identity(arg):
+    return arg
+
 @once
 def initialize_settings():
     print("Initialized settings.")
 
+@memoized
+def ackermann(m, n):
+    if not m:
+        return n + 1
+    elif not n:
+        return ackermann(m - 1, 1)
+    else:
+        return ackermann(m - 1, ackermann(m, n - 1))
+
 def main():
     #to stdout
     #count function calls
-    res1 = identity(str)
+    identity(str)
     print("Calls number: %d" % (identity.calls_num,))
     trace()
 
     #with time
     print()
-    res2 = timethis(sum)(range(10**6))
-    print("Sum result: %d" % (res2,))
+    print("Sum result: %d" % (timethis(sum)(range(10**6)),))
 
     #called once
     print()
     initialize_settings()
     initialize_settings()
+
+    #memoized
+    print()
+    print(ackermann(3, 4))
 
 if __name__ == "__main__":
     sys.exit(main())
