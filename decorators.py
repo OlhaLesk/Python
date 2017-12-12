@@ -1,4 +1,5 @@
 import functools
+import math
 import time
 import sys
 import warnings
@@ -67,6 +68,31 @@ def memoized(func):
         return cache[key]
     return inner
 
+def pre(condition, message):
+    def wrapper(func):
+        @functools.wraps(func)
+        def inner(*args, **kwargs):
+            assert condition(*args, **kwargs), message
+            return func(*args, **kwargs)
+        return inner
+    return wrapper
+
+def post(condition, message):
+    def wrapper(func):
+        @functools.wraps(func)
+        def inner(*args, **kwargs):
+            result = func(*args, **kwargs)
+            assert condition(result), message
+            return result
+        return inner
+    return wrapper
+
+def square(func):
+    return lambda x: func(x * x)
+
+def add(func):
+    return lambda x: func(x + 42)
+
 #Functions
 @counted
 @trace
@@ -85,6 +111,19 @@ def ackermann(m, n):
         return ackermann(m - 1, 1)
     else:
         return ackermann(m - 1, ackermann(m, n - 1))
+
+@pre(lambda x: x >= 0, "negative argument")
+def checked_log(x):
+    return math.log(x)
+
+@post(lambda x: not math.isnan(x), "not a number")
+def something_useful():
+    return float("nan")
+
+@square
+@add
+def a(x):
+    return x
 
 def main():
     #to stdout
@@ -105,6 +144,16 @@ def main():
     #memoized
     print()
     print(ackermann(3, 4))
+
+    #pre
+#    checked_log(-1)
+
+    #post
+#    something_useful()
+
+    #several decorators
+    print(a(2))
+
 
 if __name__ == "__main__":
     sys.exit(main())
