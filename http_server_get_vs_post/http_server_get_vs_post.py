@@ -56,6 +56,8 @@ class CustomHTTPRequestHandler(BaseHTTPRequestHandler):
                   '        </tr>' \
                   '      </tbody>' \
                   '    </table>' \
+                  '    <input type="button" onclick="history.back()" ' \
+                  '           value="Back" />' \
                   '  </body>' \
                   '</html>' % (self.client_address,
                                self.command,
@@ -72,10 +74,11 @@ class CustomHTTPRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         logging.info("GET Request,\nPath: %s\nHeaders:\n%s\n",
                      str(self.path), str(self.headers))
-        cwd = os.getcwd()
+        script_directory = os.path.dirname(os.path.realpath(__file__))
         try:
             if self.path.endswith('.html'):
-                f = open(cwd + '/template/' + self.path) #open requested file
+                #open requested file
+                f = open(script_directory + '/template/' + self.path)
 
                 self._set_response()
 
@@ -84,7 +87,7 @@ class CustomHTTPRequestHandler(BaseHTTPRequestHandler):
                 f.close()
                 return
             elif self.path == '/':
-                f = open(cwd + '/template/' + 'get_vs_post.html')
+                f = open(script_directory + '/template/' + 'get_vs_post.html')
 
                 self._set_response()
                 self.wfile.write(bytes(f.read(), 'utf8'))
@@ -92,6 +95,7 @@ class CustomHTTPRequestHandler(BaseHTTPRequestHandler):
                 return
             elif self.path == '/info' or self.path == '/info/':
                 self.server_info()
+                return
         except IOError:
             self.send_error(404, 'file not found')
 
@@ -150,8 +154,6 @@ def run(*, port=None):
 
 if __name__ == '__main__':
     from sys import argv
-    print(argv)
-    print(len(argv))
     if len(argv) == 2:
         run(port=int(argv[1]))
     else:
