@@ -52,7 +52,6 @@ class MessageHandler(BaseHTTPRequestHandler):
 
 class ThreadHTTPServer(ThreadingMixIn, HTTPServer):
     "This is an HTTPServer that supports thread-based concurrency."
-    pass
 
 
 if __name__ == '__main__':
