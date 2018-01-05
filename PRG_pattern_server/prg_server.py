@@ -3,8 +3,10 @@
 # An HTTP server that has just a message board.
 
 import os
+import threading
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from socketserver import ThreadingMixIn
 from urllib.parse import parse_qs
 
 
@@ -48,9 +50,14 @@ class MessageHandler(BaseHTTPRequestHandler):
         self.wfile.write(mesg.encode())
 
 
+class ThreadHTTPServer(ThreadingMixIn, HTTPServer):
+    "This is an HTTPServer that supports thread-based concurrency."
+    pass
+
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8000))
     server_address = ('', port)
-    httpd = HTTPServer(server_address, MessageHandler)
+    httpd = ThreadHTTPServer(server_address, MessageHandler)
     httpd.serve_forever()
 
