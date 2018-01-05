@@ -72,8 +72,8 @@ class CustomHTTPRequestHandler(BaseHTTPRequestHandler):
 
     #handle GET command
     def do_GET(self):
-        logging.info("GET Request,\nPath: %s\nHeaders:\n%s\n",
-                     str(self.path), str(self.headers))
+        logging.info("\nMethod: %s,\nPath: %s\nHeaders:\n%s\n",
+                     str(self.command), str(self.path), str(self.headers))
         script_directory = os.path.dirname(os.path.realpath(__file__))
         try:
             if self.path.endswith('.html'):
@@ -104,6 +104,12 @@ class CustomHTTPRequestHandler(BaseHTTPRequestHandler):
 
     #handle POST command
     def do_POST(self):
+        logging.info("\nMethod: %s,\nPath: %s\nHeaders:\n%s\n",
+                     str(self.command), str(self.path), str(self.headers))
+#        length = int(self.headers.get('Content-length', 0))
+#        data = self.rfile.read(length).decode()
+#        print(length)
+#        print(data)
         form = cgi.FieldStorage(fp=self.rfile,
                                 headers=self.headers,
                                 environ={'REQUEST_METHOD': 'POST',
@@ -121,14 +127,14 @@ class CustomHTTPRequestHandler(BaseHTTPRequestHandler):
         response = '<!DOCTYPE html>' \
                    '<html>' \
                    '  <head>' \
-                   '    <title>GET form input</title>' \
+                   '    <title>%s form input</title>' \
                    '  </head>' \
                    '  <body>' \
                    '    <h1>Hello %s %s!</h1>' \
                    '    <input type="button" onclick="history.back()" ' \
                    '           value="Back" />' \
                    '  </body>' \
-                   '</html>' % (firstname, lastname)
+                   '</html>' % (str(self.command), firstname, lastname)
         length = len(response)
         self._set_response(length)
         self.wfile.write(bytes(response, 'utf8'))
